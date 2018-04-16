@@ -1,8 +1,7 @@
-from typing import NamedTuple, Callable, Any, List, Optional
+from typing import NamedTuple, Any, List, Optional
 from ctypes import CDLL, byref, c_int, c_char_p, Structure
 from enum import Enum
 from contextlib import suppress, AbstractContextManager
-import utils
 
 
 class LibraryNotFound(BaseException):
@@ -85,7 +84,7 @@ class Color(NamedTuple):
         return Color(255, 255, 255)
 
 
-class Rectangle(Structure):
+class Rectangle(NamedTuple):
 
     x: int
     y: int
@@ -153,6 +152,11 @@ class Renderer(AbstractContextManager):
 
     def render_present(self) -> None:
         if libsdl2.SDL_RenderPresent(self.sdl_renderer) < 0:
+            raise Error
+
+    def fill_rectangle(self, r: Rectangle) -> None:
+        if libsdl2.SDL_RenderFillRect(self.sdl_renderer,
+                                      byref(r._as_parameter_)) < 0:
             raise Error
 
     @property

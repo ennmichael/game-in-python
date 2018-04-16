@@ -2,15 +2,24 @@
 
 
 import sdl
+import game
+import utils
 
 
 if __name__ == '__main__':
     with sdl.Window(b'Title', sdl.Dimensions(640, 480)) as window, \
-         window.renderer() as renderer, \
-         renderer.load_texture(b'character.png') as character_texture:
+         window.renderer() as renderer:
 
-        def main_callback(delta: sdl.Seconds) -> None:
+        x = 0.
+
+        def main_callback(delta: utils.Seconds) -> None:
+            global x
+
+            x += delta * 50
+
+            renderer.draw_color = sdl.Color.white()
             renderer.render_clear()
+            renderer.draw_color = sdl.Color.black()
             renderer.render_present()
 
-        sdl.main_loop(main_callback)
+        game.main_loop(main_callback)

@@ -6,4 +6,4 @@ Seconds = NewType('Seconds', float)
 
 
 def current_time() -> Seconds:
-    return Seconds(time())
+    return Seconds(time.time())
