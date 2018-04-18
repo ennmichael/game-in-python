@@ -216,8 +216,8 @@ class Renderer:
                                     ctypes.byref(src._as_parameter_),
                                     ctypes.byref(dst._as_parameter_),
                                     ctypes.c_double(0),
-                                    flip or Flip.NONE,
-                                    flip) < 0:
+                                    None,
+                                    flip or Flip.NONE) < 0:
             raise Error
 
 

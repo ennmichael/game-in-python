@@ -7,9 +7,9 @@ from game import utils
 @enum.unique
 class FlagExample(utils.Flag):
 
-    A = enum.auto()
-    B = enum.auto()
-    C = enum.auto()
+    A = 0x01
+    B = 0x02
+    C = 0x04
 
 
 class FlagTest(unittest.TestCase):
@@ -21,14 +21,14 @@ class FlagTest(unittest.TestCase):
         self.assertFalse(e.has_flag(FlagExample.B))
         self.assertFalse(e.has_flag(FlagExample.C))
 
-        e.unset_flag(FlagExample.A)
+        e = e.unset_flag(FlagExample.A)
 
         self.assertFalse(e.has_flag(FlagExample.A))
         self.assertFalse(e.has_flag(FlagExample.B))
         self.assertFalse(e.has_flag(FlagExample.C))
 
-        e.set_flag(FlagExample.B)
-        e.set_flag(FlagExample.C)
+        e = e.set_flag(FlagExample.B)
+        e = e.set_flag(FlagExample.C)
 
         self.assertFalse(e.has_flag(FlagExample.A))
         self.assertTrue(e.has_flag(FlagExample.B))

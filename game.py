@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Any
+from typing import Callable, Optional, Union
 import enum
 
 import sdl
@@ -28,7 +28,7 @@ class Animation:
                  frame_count: int,
                  frame_delay: utils.Seconds,
                  frame_width: int,
-                 start_x: int=0) -> None:
+                 start_x: int) -> None:
         self.sprite_sheet = sprite_sheet
         self.start_x = start_x
         self.frame_count = frame_count
@@ -77,33 +77,40 @@ class Animation:
                              self.frame_dimensions.height)
 
 
+class Image:
+
+    def __init__(self,
+                 sprite_sheet: sdl.Texture,
+                 frame_width: int,
+                 src_x: int) -> None:
+        pass
+
+
+Sprite = Union[Image, Animation]
+
+
+class Entity:  # TODO Does this design for Entity make sense?
+
+    def __init__(self, position: complex, sprite: Sprite) -> None:
+        self.sprite = sprite
+        self.direction
+        self.position = position
+        self.velocity = 0 + 0j
+
+    def update_position(self, delta: utils.Seconds) -> None:
+        self.position += delta * self.velocity
+
+    def apply_gravity(self, delta: utils.Seconds) -> None:
+        self.velocity += game.GRAVITY * (delta ** 2) * 1j
+
+    def render(self, renderer: sdl.Renderer) -> None:
+        self.sprite.render(renderer, position)
+
 @enum.unique
-class Direction(enum.IntEnum):
+class Direction(enum.Enum):
 
     LEFT = enum.auto()
     RIGHT = enum.auto()
 
-
-class Entity:
-
-    def __init__(self, position: complex) -> None:
-        self.position = position
-
-    def apply_gravity(self, delta: utils.Seconds) -> None:
-        pass
-
-    def update_position(self, delta: utils.Seconds) -> None:
-        pass
-
-
-class DynamicEntity(Entity):
-    
-    def __init__(self, position: complex, velocity: complex) -> None:
-        super().__init__(position)
-        self.velocity = velocity
-    
-    def apply_gravity(self, delta: utils.Seconds) -> None:
-        self.velocity += GRAVITY * (delta ** 2) * 1j
-
-    def update_position(self, delta: utils.Seconds) -> None:
-        self.position += self.velocity * delta
+    def to_flip(self) -> sdl.Flip:
+        return sdl.Flip.NONE if self == Direction.RIGHT else sdl.Flip.HORIZONTAL

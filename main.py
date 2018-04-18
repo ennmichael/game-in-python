@@ -1,6 +1,11 @@
 import sdl
 import utils
 import game
+from igor import Igor
+
+
+# TODO Rename the module `igor`, parhaps into player?
+# TODO Handle views by just passing offset parameters all over the place
 
 
 WINDOW_DIMENSIONS = sdl.Dimensions(640, 480)
@@ -14,21 +19,22 @@ if __name__ == '__main__':
          sdl.destroying(window.renderer()) as renderer, \
          sdl.destroying(renderer.load_textures(TEXTURES_PATHS)) as textures:
 
-        animation = game.Animation(textures[b'sprites/running.png'],
-                                   frame_count=8,
-                                   frame_delay=utils.Seconds(0.15),
-                                   frame_width=100)
+        keyboard = sdl.Keyboard()
 
-        position = 0 + 0j
+        igor = Igor(position=0 + 0j,
+                    textures=textures)
 
         def main_callback(delta: utils.Seconds) -> None:
-            global position
-            position = position + delta * 100
-
             renderer.render_clear()
-            animation.render(renderer, position)
+            igor.handle_keyboard(keyboard)
+            igor.update(delta)
+            igor.render(renderer)
             renderer.render_present()
 
         game.main_loop(main_callback)
 
-        # TODO Make Igor move via keyboard
+        # TODO Integrate some kind of blocks
+        # TODO Make Igor interact with them (or rather, make Entity
+        # interact with them later)? Primarly, make proper gravity stuff,
+        # and then also proper collision checking
+        # TODO Flush out a proper Entity design
