@@ -6,14 +6,20 @@ import game
 import utils
 
 
+WINDOW_DIMENSIONS = sdl.Dimensions(640, 480)
+TEXTURES_PATHS = [
+    b'sprites/running.png'
+]
+
+
 if __name__ == '__main__':
-    with sdl.Window(b'Title', sdl.Dimensions(640, 480)) as window, \
-         window.renderer() as renderer, \
-         renderer.load_texture(b'sprites/running.png') as running:
+    with sdl.destroying(sdl.Window(b'Title', WINDOW_DIMENSIONS)) as window, \
+         sdl.destroying(window.renderer()) as renderer, \
+         sdl.destroying(renderer.load_textures(TEXTURES_PATHS)) as textures:
 
         keyboard = sdl.Keyboard()
 
-        animation = game.Animation(running,
+        animation = game.Animation(textures[b'sprites/running.png'],
                                    frame_count=8,
                                    frame_delay=utils.Seconds(0.15),
                                    frame_width=100)

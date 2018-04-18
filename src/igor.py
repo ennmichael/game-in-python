@@ -6,21 +6,21 @@ import enum
 class Igor:
 
     @enum.unique
-    class State(enum.Enum):
+    class State(utils.Flag):
 
-        STANDING = 0x01
-        MOVING = 0x02
-        ATTACKING = 0x04
+        NONE = 0x00
+        MOVING = 0x01
+        ATTACKING = 0x02
 
     def __init__(self, position: complex) -> None:
-        self.state = State.STANDING
+        self.state = Igor.State.NONE
         self.position = position
         self.animation = None
         # Have resources injected in here
 
     @property
-    def time_since_state_change(self) -> Seconds:
-        return utils.current_time() - self.state_change_time
+    def time_since_state_change(self) -> utils.Seconds:
+        return utils.Seconds(utils.current_time() - self.state_change_time)
 
     @property
     def state(self) -> State:
@@ -32,4 +32,25 @@ class Igor:
         self.state_change_time = utils.current_time()
 
     def update(self) -> None:
-        if self.state 
+        pass
+
+    @property
+    def standing_still(self) -> bool:
+        return not self.state.has_flag(Igor.State.MOVING)
+        # TODO This is a bug, we need to check if Igor is mid-air here too
+
+    def move_left(self) -> None:
+        if not self.state.has_flag(Igor.State.MOVING):
+            self.state.set_flag(Igor.State.MOVING)
+            self.direction = game.Direction.LEFT
+
+    def move_right(self) -> None:
+        if not self.state.has_flag(Igor.State.MOVING):
+            self.state.set_flag(Igor.State.MOVING)
+            self.direction = game.Direction.LEFT
+
+    def move_in_direction(self, direction: game.Direction) -> None:
+        pass
+
+    def stand_still(self) -> None:
+        pass

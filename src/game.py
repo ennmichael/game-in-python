@@ -70,7 +70,7 @@ class Animation:
 
 
 @enum.unique
-class Direction(enum.Enum):
+class Direction(enum.IntEnum):
 
     LEFT = enum.auto()
     RIGHT = enum.auto()

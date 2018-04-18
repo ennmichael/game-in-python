@@ -1,7 +1,8 @@
-from typing import NamedTuple, Any, List, Optional
+from typing import NamedTuple, Any, List, Optional, Iterator, Dict, TypeVar
 import ctypes
 import enum
 import contextlib
+import abc
 
 
 class LibraryNotFound(BaseException):
@@ -119,7 +120,7 @@ class Rectangle(NamedTuple):
         return SdlRect(self.x, self.y, self.width, self.height)
 
 
-class Window(contextlib.AbstractContextManager):
+class Window:
 
     def __init__(self,
                  title: bytes,
@@ -136,14 +137,17 @@ class Window(contextlib.AbstractContextManager):
         if not self.sdl_window:
             raise Error
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def destroy(self) -> None:
         libsdl2.SDL_DestroyWindow(self.sdl_window)
 
     def renderer(self, draw_color: Optional[Color]=None) -> 'Renderer':
         return Renderer(self, draw_color)
 
 
-class Renderer(contextlib.AbstractContextManager):
+LoadedTextures = Dict[bytes, 'Texture']
+
+
+class Renderer:
 
     def __init__(self,
                  window: Window,
@@ -156,11 +160,14 @@ class Renderer(contextlib.AbstractContextManager):
 
         self.draw_color = draw_color or Color.white()
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def destroy(self) -> None:
         libsdl2.SDL_DestroyRenderer(self.sdl_renderer)
 
     def load_texture(self, path: bytes) -> 'Texture':
         return Texture(self, path)
+
+    def load_textures(self, paths: List[bytes]) -> LoadedTextures:
+        return {path: self.load_texture(path) for path in paths}
 
     def render_clear(self) -> None:
         if libsdl2.SDL_RenderClear(self.sdl_renderer) < 0:
@@ -215,7 +222,7 @@ class Renderer(contextlib.AbstractContextManager):
             raise Error
 
 
-class Texture(contextlib.AbstractContextManager):
+class Texture:
 
     def __init__(self, renderer: Renderer, path: bytes) -> None:
         self.sdl_texture = libsdl2_image.IMG_LoadTexture(renderer.sdl_renderer,
@@ -248,13 +255,35 @@ class Texture(contextlib.AbstractContextManager):
     def dimensions(self) -> Dimensions:
         return Dimensions(self.width, self.height)
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def destroy(self) -> None:
         libsdl2.SDL_DestroyTexture(self.sdl_texture)
+
+
+class DestroyableBound(abc.ABC):
+
+    @abc.abstractmethod
+    def destroy(self) -> None:
+        pass
+
+
+Destroyable = TypeVar('Destroyable')
+
+
+@contextlib.contextmanager
+def destroying(resource: Destroyable) -> Iterator[Destroyable]:
+    try:
+        yield resource
+    finally:
+        if isinstance(resource, list):
+            for r in resource:
+                r.destroy()
+            else:
+                resource.destroy()  # type: ignore
 
 
 class Keyboard:
 
-    def __init__(self) -> None:  # TODO This doesn't work
+    def __init__(self) -> None:
         self.keyboard_ptr = libsdl2.SDL_GetKeyboardState(None)
 
     def key_down(self, scancode: Scancode) -> bool:
