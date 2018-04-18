@@ -1,7 +1,11 @@
-from typing import Callable
+from typing import Callable, Optional, Any
+import enum
+
 import sdl
 import utils
-import enum
+
+
+GRAVITY = 0.001
 
 
 MainLoopCallback = Callable[[utils.Seconds], None]
@@ -33,10 +37,14 @@ class Animation:
         self.frame_dimensions = sdl.Dimensions(frame_width, frame_height)
         self.start_time = utils.current_time()
 
-    def render(self, renderer: sdl.Renderer, position: complex) -> None:
+    def render(self,
+               renderer: sdl.Renderer,
+               position: complex,
+               flip: Optional[sdl.Flip]=None) -> None:
         renderer.render_texture(self.sprite_sheet,
                                 self.src_rectangle(),
-                                self.dst_rectangle(position))
+                                self.dst_rectangle(position),
+                                flip)
 
     def rewind(self) -> None:
         self.start_time = utils.current_time()
@@ -74,3 +82,28 @@ class Direction(enum.IntEnum):
 
     LEFT = enum.auto()
     RIGHT = enum.auto()
+
+
+class Entity:
+
+    def __init__(self, position: complex) -> None:
+        self.position = position
+
+    def apply_gravity(self, delta: utils.Seconds) -> None:
+        pass
+
+    def update_position(self, delta: utils.Seconds) -> None:
+        pass
+
+
+class DynamicEntity(Entity):
+    
+    def __init__(self, position: complex, velocity: complex) -> None:
+        super().__init__(position)
+        self.velocity = velocity
+    
+    def apply_gravity(self, delta: utils.Seconds) -> None:
+        self.velocity += GRAVITY * (delta ** 2) * 1j
+
+    def update_position(self, delta: utils.Seconds) -> None:
+        self.position += self.velocity * delta

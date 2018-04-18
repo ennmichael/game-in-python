@@ -1,9 +1,6 @@
-#!/usr/bin/env python3.6
-
-
 import sdl
-import game
 import utils
+import game
 
 
 WINDOW_DIMENSIONS = sdl.Dimensions(640, 480)
@@ -16,8 +13,6 @@ if __name__ == '__main__':
     with sdl.destroying(sdl.Window(b'Title', WINDOW_DIMENSIONS)) as window, \
          sdl.destroying(window.renderer()) as renderer, \
          sdl.destroying(renderer.load_textures(TEXTURES_PATHS)) as textures:
-
-        keyboard = sdl.Keyboard()
 
         animation = game.Animation(textures[b'sprites/running.png'],
                                    frame_count=8,
@@ -35,3 +30,5 @@ if __name__ == '__main__':
             renderer.render_present()
 
         game.main_loop(main_callback)
+
+        # TODO Make Igor move via keyboard

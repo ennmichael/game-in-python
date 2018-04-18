@@ -2,7 +2,6 @@ from typing import NamedTuple, Any, List, Optional, Iterator, Dict, TypeVar
 import ctypes
 import enum
 import contextlib
-import abc
 
 
 class LibraryNotFound(BaseException):
@@ -211,13 +210,13 @@ class Renderer:
                        texture: 'Texture',
                        src: Rectangle,
                        dst: Rectangle,
-                       flip: Flip=Flip.NONE) -> None:
+                       flip: Optional[Flip]=None) -> None:
         if libsdl2.SDL_RenderCopyEx(self.sdl_renderer,
                                     texture.sdl_texture,
                                     ctypes.byref(src._as_parameter_),
                                     ctypes.byref(dst._as_parameter_),
                                     ctypes.c_double(0),
-                                    None,
+                                    flip or Flip.NONE,
                                     flip) < 0:
             raise Error
 
@@ -257,13 +256,6 @@ class Texture:
 
     def destroy(self) -> None:
         libsdl2.SDL_DestroyTexture(self.sdl_texture)
-
-
-class DestroyableBound(abc.ABC):
-
-    @abc.abstractmethod
-    def destroy(self) -> None:
-        pass
 
 
 Destroyable = TypeVar('Destroyable')

@@ -1,22 +1,32 @@
 import utils
+
 import game
 import enum
+import sdl
 
 
-class Igor:
+class Igor(game.DynamicEntity):
 
     @enum.unique
     class State(utils.Flag):
 
         NONE = 0x00
-        MOVING = 0x01
         ATTACKING = 0x02
 
-    def __init__(self, position: complex) -> None:
+    def __init__(self,
+                 position: complex,
+                 speed: float) -> None:
         self.state = Igor.State.NONE
         self.position = position
+        self.speed = speed
+        self.velocity = 0 + 0j
+        self.flipped = False
         self.animation = None
         # Have resources injected in here
+
+    def render(self, renderer: sdl.Renderer, ) -> None:
+        flip = sdl.Flip.HORIZONTAL if self.flipped else sld.Flip.NONE
+        animation.render(renderer, self.position, flip)
 
     @property
     def time_since_state_change(self) -> utils.Seconds:
@@ -48,9 +58,6 @@ class Igor:
         if not self.state.has_flag(Igor.State.MOVING):
             self.state.set_flag(Igor.State.MOVING)
             self.direction = game.Direction.LEFT
-
-    def move_in_direction(self, direction: game.Direction) -> None:
-        pass
 
     def stand_still(self) -> None:
         pass
