@@ -1,7 +1,7 @@
 from typing import NamedTuple, Any, List, Optional
-from ctypes import CDLL, byref, c_int, c_char_p, Structure
-from enum import Enum
-from contextlib import suppress, AbstractContextManager
+import ctypes
+import enum
+import contextlib
 
 
 class LibraryNotFound(BaseException):
@@ -9,42 +9,60 @@ class LibraryNotFound(BaseException):
     pass
 
 
-class CEnum(Enum):
-
-    def __init__(self, value: int) -> None:
-        self._as_parameter_ = value
-
-
-class Event(CEnum):
+@enum.unique
+class Event(enum.IntEnum):
 
     QUIT = 0x100
 
 
-class EventAction(CEnum):
+@enum.unique
+class EventAction(enum.IntEnum):
 
     PEEK_EVENT = 1
 
 
-def load_first_available(library_paths: List[str]) -> CDLL:
+@enum.unique
+class Flip(enum.IntEnum):
+
+    NONE = 0
+    HORIZONTAL = 1
+    VERTICAL = 2
+
+
+@enum.unique
+class Scancode(enum.IntEnum):
+
+    X = 27
+    Y = 28
+    Z = 29
+    RIGHT = 79
+    LEFT = 80
+
+
+def load_first_available(library_paths: List[str]) -> ctypes.CDLL:
     for path in library_paths:
-        with suppress(OSError):
-            libsdl2 = CDLL(path)
+        with contextlib.suppress(OSError):
+            libsdl2 = ctypes.CDLL(path)
             if libsdl2:
                 return libsdl2
 
     raise LibraryNotFound(library_paths)
 
 
-def load_libsdl2() -> CDLL:
+def load_libsdl2() -> ctypes.CDLL:
     return load_first_available(['libSDL2-2.0.so', 'SDL2'])
 
 
-def load_libsdl2_image() -> CDLL:
+def load_libsdl2_image() -> ctypes.CDLL:
     return load_first_available(['libSDL2_image-2.0.so', 'SDL2_image'])
 
 
 libsdl2 = load_libsdl2()
 libsdl2_image = load_libsdl2_image()
+
+
+libsdl2.SDL_GetError.restype = ctypes.c_char_p
+libsdl2.SDL_GetKeyboardState.restype = ctypes.POINTER(ctypes.c_uint8)
 
 
 def quit_requested() -> bool:
@@ -57,9 +75,7 @@ def quit_requested() -> bool:
 class Error(BaseException):
 
     def __init__(self) -> None:
-        get_error = libsdl2.SDL_GetError
-        get_error.restype = c_char_p
-        super().__init__(get_error())
+        super().__init__(libsdl2.SDL_GetError())
 
 
 class Dimensions(NamedTuple):
@@ -93,17 +109,17 @@ class Rectangle(NamedTuple):
 
     @property
     def _as_parameter_(self) -> Any:
-        class SdlRect(Structure):
+        class SdlRect(ctypes.Structure):
 
-            _fields_ = [('x', c_int),
-                        ('y', c_int),
-                        ('w', c_int),
-                        ('h', c_int)]
+            _fields_ = [('x', ctypes.c_int),
+                        ('y', ctypes.c_int),
+                        ('w', ctypes.c_int),
+                        ('h', ctypes.c_int)]
 
         return SdlRect(self.x, self.y, self.width, self.height)
 
 
-class Window(AbstractContextManager):
+class Window(contextlib.AbstractContextManager):
 
     def __init__(self,
                  title: bytes,
@@ -127,7 +143,7 @@ class Window(AbstractContextManager):
         return Renderer(self, draw_color)
 
 
-class Renderer(AbstractContextManager):
+class Renderer(contextlib.AbstractContextManager):
 
     def __init__(self,
                  window: Window,
@@ -156,21 +172,21 @@ class Renderer(AbstractContextManager):
 
     def fill_rectangle(self, r: Rectangle) -> None:
         if libsdl2.SDL_RenderFillRect(self.sdl_renderer,
-                                      byref(r._as_parameter_)) < 0:
+                                      ctypes.byref(r._as_parameter_)) < 0:
             raise Error
 
     @property
     def draw_color(self) -> Color:
-        r = c_int()
-        g = c_int()
-        b = c_int()
-        a = c_int()
+        r = ctypes.c_int()
+        g = ctypes.c_int()
+        b = ctypes.c_int()
+        a = ctypes.c_int()
 
         if libsdl2.SDL_GetRenderDrawColor(self.sdl_renderer,
-                                          byref(r),
-                                          byref(g),
-                                          byref(b),
-                                          byref(a)) < 0:
+                                          ctypes.byref(r),
+                                          ctypes.byref(g),
+                                          ctypes.byref(b),
+                                          ctypes.byref(a)) < 0:
             raise Error
 
         return Color(r.value, g.value, b.value, a.value)
@@ -187,11 +203,19 @@ class Renderer(AbstractContextManager):
     def render_texture(self,
                        texture: 'Texture',
                        src: Rectangle,
-                       dst: Rectangle) -> None:
-        pass
+                       dst: Rectangle,
+                       flip: Flip=Flip.NONE) -> None:
+        if libsdl2.SDL_RenderCopyEx(self.sdl_renderer,
+                                    texture.sdl_texture,
+                                    ctypes.byref(src._as_parameter_),
+                                    ctypes.byref(dst._as_parameter_),
+                                    ctypes.c_double(0),
+                                    None,
+                                    flip) < 0:
+            raise Error
 
 
-class Texture(AbstractContextManager):
+class Texture(contextlib.AbstractContextManager):
 
     def __init__(self, renderer: Renderer, path: bytes) -> None:
         self.sdl_texture = libsdl2_image.IMG_LoadTexture(renderer.sdl_renderer,
@@ -200,5 +224,38 @@ class Texture(AbstractContextManager):
         if not self.sdl_texture:
             raise Error
 
+    @property
+    def height(self) -> int:
+        h = ctypes.c_int(0)
+        if libsdl2.SDL_QueryTexture(self.sdl_texture,
+                                    None, None,
+                                    None, ctypes.byref(h)) < 0:
+            raise Error
+
+        return h.value
+
+    @property
+    def width(self) -> int:
+        w = ctypes.c_int(0)
+        if libsdl2.SDL_QueryTexture(self.sdl_texture,
+                                    None, None,
+                                    ctypes.byref(w), None) < 0:
+            raise Error
+
+        return w.value
+
+    @property
+    def dimensions(self) -> Dimensions:
+        return Dimensions(self.width, self.height)
+
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         libsdl2.SDL_DestroyTexture(self.sdl_texture)
+
+
+class Keyboard:
+
+    def __init__(self) -> None:  # TODO This doesn't work
+        self.keyboard_ptr = libsdl2.SDL_GetKeyboardState(None)
+
+    def key_down(self, scancode: Scancode) -> bool:
+        return bool(self.keyboard_ptr[scancode])
