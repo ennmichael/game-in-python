@@ -4,13 +4,12 @@ import game
 from player import Igor
 
 
-# TODO Rename the module `igor`, parhaps into player?
 # TODO Handle views by just passing offset parameters all over the place
 
 
 WINDOW_DIMENSIONS = sdl.Dimensions(640, 480)
 TEXTURES_PATHS = [
-    b'sprites/running.png'
+    b'sprites/igor.png'
 ]
 
 
@@ -27,7 +26,8 @@ if __name__ == '__main__':
         def main_callback(delta: utils.Seconds) -> None:
             renderer.render_clear()
             igor.handle_keyboard(keyboard)
-            igor.update(delta)
+            game.update_physics(igor, delta)
+            print(igor.sprite.__class__.__name__)
             igor.render(renderer)
             renderer.render_present()
 

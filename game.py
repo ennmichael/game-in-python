@@ -50,6 +50,7 @@ class Animation:
 
     def current_frame(self) -> sdl.Rectangle:
         i = int(self.time_since_start()/self.frame_delay) % len(self.frames)
+        print(self.time_since_start())
         return self.frames[i]
 
     def time_since_start(self) -> utils.Seconds:
@@ -80,12 +81,26 @@ class Image:
 Sprite = Union[Image, Animation]
 
 
+def even_frames(first_frame: sdl.Rectangle,
+                frame_count: int) -> List[sdl.Rectangle]:
+    return [
+        sdl.Rectangle(first_frame.width * i, 0,
+                      first_frame.width, first_frame.height)
+        for i in range(0, frame_count)
+    ]
+
+
 def update_position(entity: Any, delta: utils.Seconds) -> None:
     entity.position += entity.velocity * delta
 
 
 def apply_gravity(entity: Any, delta: utils.Seconds) -> None:
     entity.velocity += GRAVITY * delta * delta * 1j
+
+
+def update_physics(entity: Any, delta: utils.Seconds) -> None:
+    update_position(entity, delta)
+    apply_gravity(entity, delta)
 
 
 @enum.unique
