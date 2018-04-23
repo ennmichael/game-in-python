@@ -1,7 +1,7 @@
 import sdl
 import utils
 import game
-from igor import Igor
+from player import Igor
 
 
 # TODO Rename the module `igor`, parhaps into player?
@@ -32,9 +32,3 @@ if __name__ == '__main__':
             renderer.render_present()
 
         game.main_loop(main_callback)
-
-        # TODO Integrate some kind of blocks
-        # TODO Make Igor interact with them (or rather, make Entity
-        # interact with them later)? Primarly, make proper gravity stuff,
-        # and then also proper collision checking
-        # TODO Flush out a proper Entity design

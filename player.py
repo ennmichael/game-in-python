@@ -3,18 +3,28 @@ import utils
 import game
 import enum
 import sdl
+import functools
 
 
 class Igor:
 
-    MAX_SPEED = 90
-    ACCELERATION = 0.2
+    class Sprites:
+
+        def __init__(self, textures: sdl.LoadedTextures) -> None:
+
+            sprite_sheet = textures[b'sprites/igor.png']
+
+            self.still = functools.partial(game.Animation, sprite_sheet)
+            self.running = functools.partial(game.Animation, sprite_sheet)
+            # TODO Other parameters too
+
+    SPEED = 90
 
     @enum.unique
     class State(utils.Flag):
 
         NONE = 0x00
-        ATTACKING = 0x02
+        ATTACKING = 0x01
 
     def __init__(self,
                  position: complex,
@@ -23,16 +33,13 @@ class Igor:
         self.state = Igor.State.NONE
         self.position = position
         self.velocity = 0 + 0j
-        self.animation = game.Animation(textures[b'sprites/running.png'],
-                                        frame_count=8,
-                                        frame_delay=utils.Seconds(0.15),
-                                        frame_width=100,
-                                        start_x=0)
+        self.sprites = Igor.Sprites(textures)
+        self.sprite = self.sprites.still()
 
     def render(self, renderer: sdl.Renderer) -> None:
-        self.animation.render(renderer,
-                              self.position,
-                              self.direction.to_flip())
+        self.sprite.render(renderer,
+                           self.position,
+                           self.direction.to_flip())
 
     @property
     def time_since_state_change(self) -> utils.Seconds:
@@ -55,16 +62,18 @@ class Igor:
         self.position += self.velocity * delta
 
     def apply_gravity(self, delta: utils.Seconds) -> None:
+        pass
 
     def move_right(self) -> None:
         self.direction = game.Direction.RIGHT
-        if self.velocity.real < self.max_speed:
-            self.velocity += self.acceleration
+        self.velocity = Igor.SPEED + self.velocity.imag * 1j
 
     def move_left(self) -> None:
         self.direction = game.Direction.LEFT
-        if self.velocity.real > -self.max_speed:
-            self.velocity -= self.acceleration
+        self.velocity = -Igor.SPEED + self.velocity.imag * 1j
+
+    def stand_still(self) -> None:
+        self.velocity = self.velocity.imag * 1j
 
     def jump(self) -> None:
         pass
@@ -75,11 +84,4 @@ class Igor:
         elif keyboard.key_down(sdl.Scancode.RIGHT):
             self.move_right()
         else:
-            self.slow_down()
-
-    def slow_down(self) -> None:
-        if self.velocity.real != 0:
-            mult = self.velocity.real / abs(self.velocity.real)
-            self.velocity -= mult * self.acceleration * 2
-            if abs(self.velocity.real) < 0:
-                self.velocity = 0 + self.velocity.imag * 1j
+            self.stand_still()
