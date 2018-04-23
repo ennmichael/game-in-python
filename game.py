@@ -16,8 +16,8 @@ def main_loop(cb: MainLoopCallback) -> None:
 
     while not sdl.quit_requested():
         delta = utils.Seconds(end - start)
-        start = end
         cb(delta)
+        start = end
         end = utils.current_time()
 
 
@@ -81,6 +81,7 @@ class Image:
 Sprite = Union[Image, Animation]
 
 
+# TODO We shouldn't need this in the future
 def even_frames(first_frame: sdl.Rectangle,
                 frame_count: int) -> List[sdl.Rectangle]:
     return [

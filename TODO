@@ -1,2 +1,12 @@
-Have some proper blocks and physics
+ * Have some proper blocks and collision checking
+ * Enable Igor to jump
+ * Have a proper background sprite
+ * Enable Igor to do a flip in the air
+ * Introduce the rotation mechanic
+ * Enable Igor to run up walls
+ * Enable Igor to jump against walls (do a flip sometimes there too)
 
+ - Perhaps `sdl.Rectangle` should be modeled as `complex` + `sdl.Dimensions`?
+   Think about this. `sdl.Rectangle`'s representation is not the native
+   SDL_Rect anyways, and we want to avoid the annoying
+   `complex` + `sdl.Dimensions` -> `sdl.Rectangle` conversions.

@@ -71,6 +71,9 @@ class Igor:
             self.sprite = self.sprites.still()
             self.velocity = self.velocity.imag * 1j
 
+    def can_jump(self) -> bool:
+        pass
+    
     def jump(self) -> None:
         pass
 
