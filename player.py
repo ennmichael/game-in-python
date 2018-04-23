@@ -50,18 +50,20 @@ class Igor:
                            self.direction.to_flip())
 
     def move_right(self) -> None:
-        if self.state != Igor.State.RUNNING:
+        if (self.state != Igor.State.RUNNING
+                or self.direction != game.Direction.RIGHT):
             self.state = Igor.State.RUNNING
             self.sprite = self.sprites.running()
             self.velocity = Igor.SPEED + self.velocity.imag * 1j
-        self.direction = game.Direction.RIGHT
+            self.direction = game.Direction.RIGHT
 
     def move_left(self) -> None:
-        if self.state != Igor.State.RUNNING:
+        if (self.state != Igor.State.RUNNING
+                or self.direction != game.Direction.LEFT):
             self.state = Igor.State.RUNNING
             self.sprite = self.sprites.running()
             self.velocity = -Igor.SPEED + self.velocity.imag * 1j
-        self.direction = game.Direction.LEFT
+            self.direction = game.Direction.LEFT
 
     def stand_still(self) -> None:
         if self.state != Igor.State.STILL:
