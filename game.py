@@ -1,8 +1,9 @@
-from typing import Callable, Optional, List, Union, Any
+from typing import Callable, Optional, List, Union, Any, Iterable
 import enum
 
 import sdl
 import utils
+import collision
 
 
 GRAVITY = 0.001
@@ -91,17 +92,30 @@ def even_frames(first_frame: sdl.Rectangle,
     ]
 
 
-def update_position(entity: Any, delta: utils.Seconds) -> None:
+Box = sdl.Rectangle
+Boxes = Iterable[Box]
+
+
+def update_velocity(entity: Any, boxes: Boxes) -> None:
+    pass
+
+
+def will_collide(entity: Any, box: Box, delta) -> bool:
+    pass
+
+
+def update_physics(entity: Any, delta: utils.Seconds, boxes: Boxes) -> None:
+    collision.update_velocity(entity, boxes)
+    update_position(entity, delta)
+    apply_gravity(entity, delta)
+
+
+def update_position(entity: Any, delta: utils.Seconds, boxes: Boxes) -> None:
     entity.position += entity.velocity * delta
 
 
 def apply_gravity(entity: Any, delta: utils.Seconds) -> None:
     entity.velocity += GRAVITY * delta * delta * 1j
-
-
-def update_physics(entity: Any, delta: utils.Seconds) -> None:
-    update_position(entity, delta)
-    apply_gravity(entity, delta)
 
 
 @enum.unique
