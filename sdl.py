@@ -1,4 +1,4 @@
-from typing import NamedTuple, Any, List, Optional, Iterable, Dict, TypeVar
+from typing import NamedTuple, Any, List, Optional, Dict, TypeVar, Iterator
 import ctypes
 import enum
 import contextlib
@@ -205,6 +205,14 @@ class Renderer:
                                       ctypes.byref(r._as_parameter_)) < 0:
             raise Error
 
+    def draw_line(self, start: complex, end: complex) -> None:
+        if libsdl2.SDL_RenderDrawLine(self.sdl_renderer,
+                                      int(start.real),
+                                      int(start.imag),
+                                      int(end.real),
+                                      int(end.imag)) < 0:
+            raise Error
+
     @property
     def draw_color(self) -> Color:
         r = ctypes.c_int()
@@ -286,7 +294,7 @@ Destroyable = TypeVar('Destroyable')
 
 
 @contextlib.contextmanager
-def destroying(resource: Destroyable) -> Iterable[Destroyable]:
+def destroying(resource: Destroyable) -> Iterator[Destroyable]:
     try:
         yield resource
     finally:

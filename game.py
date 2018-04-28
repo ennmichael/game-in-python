@@ -1,5 +1,6 @@
-from typing import Callable, Optional, List, Union, Any, Iterable, NamedTuple
+from typing import Callable, Optional, List, Union, Any
 import enum
+import collision
 
 import sdl
 import utils
@@ -48,7 +49,6 @@ class Animation:
 
     def current_frame(self) -> sdl.Rectangle:
         i = int(self.time_since_start()/self.frame_delay) % len(self.frames)
-        print(self.time_since_start())
         return self.frames[i]
 
     def time_since_start(self) -> utils.Seconds:
@@ -86,21 +86,17 @@ def even_frames(first_frame: sdl.Rectangle,
     ]
 
 
-def update_physics(entity: Any, walls: Walls, delta: utils.Seconds) -> None:
-    wall = collision.detect(entity, walls, delta)
-
-    if wall:
-        # Check the angle and posibly update the velocity
-
+def update_physics(entity: Any,
+                   walls: collision.Walls,
+                   delta: utils.Seconds) -> None:
     apply_gravity(entity, delta)
-    update_position(entity, boxes, delta)
+    update_position(entity, walls, delta)
 
 
-def update_position(entity: Any, walls: Walls, delta: utils.Seconds) -> None:
+def update_position(entity: Any,
+                    walls: collision.Walls,
+                    delta: utils.Seconds) -> None:
     entity.position += entity.velocity * delta
-    box = collision.collided_box(entity, boxes)  # FIXME Terrible function name
-    if box:
-        pass
 
 
 def apply_gravity(entity: Any, delta: utils.Seconds) -> None:

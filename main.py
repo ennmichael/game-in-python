@@ -1,6 +1,7 @@
 import sdl
 import utils
 import game
+import collision
 from player import Igor
 
 
@@ -13,7 +14,16 @@ TEXTURES_PATHS = [
 ]
 
 
-boxes: game.Boxes = []
+walls = [
+    collision.Wall(100 + 0j, 200 + 200j)
+]
+
+
+def draw_walls(renderer: sdl.Renderer) -> None:
+    for wall in walls:
+        renderer.draw_color = sdl.Color.black()
+        renderer.draw_line(wall.position, wall.position + wall.free_vector)
+        renderer.draw_color = sdl.Color.white()
 
 
 if __name__ == '__main__':
@@ -28,9 +38,14 @@ if __name__ == '__main__':
 
         def main_callback(delta: utils.Seconds) -> None:
             renderer.render_clear()
+
+            print(f'Vel: {igor.velocity}')
+            if collision.will_collide(igor, walls[0], delta):
+                import pdb; pdb.set_trace()
+
+            draw_walls(renderer)
             igor.handle_keyboard(keyboard)
-            game.update_physics(igor, boxes, delta)
-            print(igor.sprite.__class__.__name__)
+            game.update_physics(igor, walls, delta)
             igor.render(renderer)
             renderer.render_present()
 
