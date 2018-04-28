@@ -14,15 +14,16 @@ class Igor:
 
             sprite_sheet = textures[b'sprites/igor.png']
 
-            self.still = functools.partial(game.Image,
-                                           sprite_sheet,
-                                           frame=sdl.Rectangle(0, 0,
-                                                               100, 160))
+            self.still = functools.partial(
+                game.Image,
+                sprite_sheet,
+                frame=sdl.Rectangle(0 + 0j, sdl.Dimensions(100, 160)))
 
             self.running = functools.partial(
                 game.Animation,
                 sprite_sheet,
-                frames=game.even_frames(sdl.Rectangle(0, 0, 100, 160), 8),
+                frames=game.even_frames(
+                    sdl.Rectangle(0 + 0j, sdl.Dimensions(100, 160)), 8),
                 frame_delay=utils.Seconds(0.15))
 
     SPEED = 90
@@ -73,7 +74,7 @@ class Igor:
 
     def can_jump(self) -> bool:
         pass
-    
+
     def jump(self) -> None:
         pass
 

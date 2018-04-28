@@ -1,9 +1,8 @@
-from typing import Callable, Optional, List, Union, Any, Iterable
+from typing import Callable, Optional, List, Union, Any, Iterable, NamedTuple
 import enum
 
 import sdl
 import utils
-import collision
 
 
 GRAVITY = 0.001
@@ -40,10 +39,8 @@ class Animation:
         current_frame = self.current_frame()
         renderer.render_texture(self.sprite_sheet,
                                 src=current_frame,
-                                dst=sdl.Rectangle(int(position.real),
-                                                  int(position.imag),
-                                                  current_frame.width,
-                                                  current_frame.height),
+                                dst=sdl.Rectangle(position,
+                                                  current_frame.dimensions),
                                 flip=flip)
 
     def done(self) -> bool:
@@ -72,10 +69,8 @@ class Image:
                flip: Optional[sdl.Flip]=None) -> None:
         renderer.render_texture(self.sprite_sheet,
                                 src=self.frame,
-                                dst=sdl.Rectangle(int(position.real),
-                                                  int(position.imag),
-                                                  self.frame.width,
-                                                  self.frame.height),
+                                dst=sdl.Rectangle(position,
+                                                  self.frame.dimensions),
                                 flip=flip)
 
 
@@ -86,32 +81,26 @@ Sprite = Union[Image, Animation]
 def even_frames(first_frame: sdl.Rectangle,
                 frame_count: int) -> List[sdl.Rectangle]:
     return [
-        sdl.Rectangle(first_frame.width * i, 0,
-                      first_frame.width, first_frame.height)
+        sdl.Rectangle(first_frame.width * i, first_frame.dimensions)
         for i in range(0, frame_count)
     ]
 
 
-Box = sdl.Rectangle
-Boxes = Iterable[Box]
+def update_physics(entity: Any, walls: Walls, delta: utils.Seconds) -> None:
+    wall = collision.detect(entity, walls, delta)
 
+    if wall:
+        # Check the angle and posibly update the velocity
 
-def update_velocity(entity: Any, boxes: Boxes) -> None:
-    pass
-
-
-def will_collide(entity: Any, box: Box, delta) -> bool:
-    pass
-
-
-def update_physics(entity: Any, delta: utils.Seconds, boxes: Boxes) -> None:
-    collision.update_velocity(entity, boxes)
-    update_position(entity, delta)
     apply_gravity(entity, delta)
+    update_position(entity, boxes, delta)
 
 
-def update_position(entity: Any, delta: utils.Seconds, boxes: Boxes) -> None:
+def update_position(entity: Any, walls: Walls, delta: utils.Seconds) -> None:
     entity.position += entity.velocity * delta
+    box = collision.collided_box(entity, boxes)  # FIXME Terrible function name
+    if box:
+        pass
 
 
 def apply_gravity(entity: Any, delta: utils.Seconds) -> None:

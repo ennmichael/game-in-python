@@ -13,6 +13,9 @@ TEXTURES_PATHS = [
 ]
 
 
+boxes: game.Boxes = []
+
+
 if __name__ == '__main__':
     with sdl.destroying(sdl.Window(b'Title', WINDOW_DIMENSIONS)) as window, \
          sdl.destroying(window.renderer()) as renderer, \
@@ -26,7 +29,7 @@ if __name__ == '__main__':
         def main_callback(delta: utils.Seconds) -> None:
             renderer.render_clear()
             igor.handle_keyboard(keyboard)
-            game.update_physics(igor, delta)
+            game.update_physics(igor, boxes, delta)
             print(igor.sprite.__class__.__name__)
             igor.render(renderer)
             renderer.render_present()

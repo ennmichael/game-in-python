@@ -6,7 +6,4 @@
  * Enable Igor to run up walls
  * Enable Igor to jump against walls (do a flip sometimes there too)
 
- - Perhaps `sdl.Rectangle` should be modeled as `complex` + `sdl.Dimensions`?
-   Think about this. `sdl.Rectangle`'s representation is not the native
-   SDL_Rect anyways, and we want to avoid the annoying
-   `complex` + `sdl.Dimensions` -> `sdl.Rectangle` conversions.
+ - Use walls for movement checking, and other entities should have checkboxes

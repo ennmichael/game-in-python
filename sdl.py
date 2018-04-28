@@ -1,4 +1,4 @@
-from typing import NamedTuple, Any, List, Optional, Iterator, Dict, TypeVar
+from typing import NamedTuple, Any, List, Optional, Iterable, Dict, TypeVar
 import ctypes
 import enum
 import contextlib
@@ -102,10 +102,32 @@ class Color(NamedTuple):
 
 class Rectangle(NamedTuple):
 
-    x: int
-    y: int
-    width: int
-    height: int
+    position: complex  # TODO Rename -> upper_left
+    dimensions: Dimensions
+
+    @property
+    def upper_right(self) -> complex:
+        return self.upper_left + self.width
+
+    @property
+    def lower_right(self) -> complex:
+        return self.upper_right + self.height
+
+    @property
+    def upper_left(self) -> complex:
+        return self.position
+
+    @property
+    def lower_left(self) -> complex:
+        return self.upper_left + self.height
+
+    @property
+    def width(self) -> int:
+        return self.dimensions.width
+
+    @property
+    def height(self) -> int:
+        return self.dimensions.height
 
     @property
     def _as_parameter_(self) -> Any:
@@ -116,7 +138,9 @@ class Rectangle(NamedTuple):
                         ('w', ctypes.c_int),
                         ('h', ctypes.c_int)]
 
-        return SdlRect(self.x, self.y, self.width, self.height)
+        return SdlRect(int(self.position.real),
+                       int(self.position.imag),
+                       self.width, self.height)
 
 
 class Window:
@@ -262,7 +286,7 @@ Destroyable = TypeVar('Destroyable')
 
 
 @contextlib.contextmanager
-def destroying(resource: Destroyable) -> Iterator[Destroyable]:
+def destroying(resource: Destroyable) -> Iterable[Destroyable]:
     try:
         yield resource
     finally:
