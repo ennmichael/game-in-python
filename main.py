@@ -39,9 +39,8 @@ if __name__ == '__main__':
         def main_callback(delta: utils.Seconds) -> None:
             renderer.render_clear()
 
-            print(f'Vel: {igor.velocity}')
             if collision.will_collide(igor, walls[0], delta):
-                import pdb; pdb.set_trace()
+                print('Will collide')
 
             draw_walls(renderer)
             igor.handle_keyboard(keyboard)
@@ -49,4 +48,4 @@ if __name__ == '__main__':
             igor.render(renderer)
             renderer.render_present()
 
-        game.main_loop(main_callback)
+        game.main_loop(main_callback, fps=60)

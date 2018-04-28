@@ -12,14 +12,19 @@ GRAVITY = 0.001
 MainLoopCallback = Callable[[utils.Seconds], None]
 
 
-def main_loop(cb: MainLoopCallback) -> None:
+def main_loop(cb: MainLoopCallback, fps: int) -> None:
     end = start = utils.current_time()
 
     while not sdl.quit_requested():
-        delta = utils.Seconds(end - start)
+        t = utils.current_time()
+        delta = utils.Seconds(t - start)
+
+        if delta < 1/fps:
+            continue
+
         cb(delta)
         start = end
-        end = utils.current_time()
+        end = t
 
 
 class Animation:
