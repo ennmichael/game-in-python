@@ -1,12 +1,13 @@
-import utils
-
-import game
 import enum
-import sdl
 import functools
 
+import utils
+import game
+import sdl
+import collision
 
-class Igor:
+
+class Wolfram:
 
     class Sprites:
 
@@ -32,18 +33,21 @@ class Igor:
     class State(enum.Enum):
 
         STILL = enum.auto()
-        ATTACKING = enum.auto()
         RUNNING = enum.auto()
 
     def __init__(self,
                  position: complex,
                  textures: sdl.LoadedTextures) -> None:
         self.direction = game.Direction.RIGHT
-        self.state = Igor.State.STILL
+        self.state = Wolfram.State.STILL
         self.position = position
         self.velocity = 0 + 0j
-        self.sprites = Igor.Sprites(textures)
+        self.sprites = Wolfram.Sprites(textures)
         self.sprite: game.Sprite = self.sprites.still()
+
+    @property
+    def checkbox(self) -> collision.Box:
+        return self.sprite.checkbox
 
     def render(self, renderer: sdl.Renderer) -> None:
         self.sprite.render(renderer,
@@ -51,24 +55,24 @@ class Igor:
                            self.direction.to_flip())
 
     def move_right(self) -> None:
-        if (self.state != Igor.State.RUNNING
+        if (self.state != Wolfram.State.RUNNING
                 or self.direction != game.Direction.RIGHT):
-            self.state = Igor.State.RUNNING
+            self.state = Wolfram.State.RUNNING
             self.sprite = self.sprites.running()
-            self.velocity = Igor.SPEED + self.velocity.imag * 1j
+            self.velocity = Wolfram.SPEED + self.velocity.imag * 1j
             self.direction = game.Direction.RIGHT
 
     def move_left(self) -> None:
-        if (self.state != Igor.State.RUNNING
+        if (self.state != Wolfram.State.RUNNING
                 or self.direction != game.Direction.LEFT):
-            self.state = Igor.State.RUNNING
+            self.state = Wolfram.State.RUNNING
             self.sprite = self.sprites.running()
-            self.velocity = -Igor.SPEED + self.velocity.imag * 1j
+            self.velocity = -Wolfram.SPEED + self.velocity.imag * 1j
             self.direction = game.Direction.LEFT
 
     def stand_still(self) -> None:
-        if self.state != Igor.State.STILL:
-            self.state = Igor.State.STILL
+        if self.state != Wolfram.State.STILL:
+            self.state = Wolfram.State.STILL
             self.sprite = self.sprites.still()
             self.velocity = self.velocity.imag * 1j
 

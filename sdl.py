@@ -102,7 +102,7 @@ class Color(NamedTuple):
 
 class Rectangle(NamedTuple):
 
-    position: complex  # TODO Rename -> upper_left
+    upper_left: complex
     dimensions: Dimensions
 
     @property
@@ -112,10 +112,6 @@ class Rectangle(NamedTuple):
     @property
     def lower_right(self) -> complex:
         return self.upper_right + self.height
-
-    @property
-    def upper_left(self) -> complex:
-        return self.position
 
     @property
     def lower_left(self) -> complex:
@@ -138,8 +134,8 @@ class Rectangle(NamedTuple):
                         ('w', ctypes.c_int),
                         ('h', ctypes.c_int)]
 
-        return SdlRect(int(self.position.real),
-                       int(self.position.imag),
+        return SdlRect(int(self.upper_left.real),
+                       int(self.upper_left.imag),
                        self.width, self.height)
 
 

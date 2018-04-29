@@ -1,9 +1,6 @@
- * Have some proper blocks and collision checking
- * Enable Igor to jump
- * Have a proper background sprite
- * Enable Igor to do a flip in the air
- * Introduce the rotation mechanic
- * Enable Igor to run up walls
- * Enable Igor to jump against walls (do a flip sometimes there too)
-
- - Use walls for movement checking, and other entities should have checkboxes
+Wolfram can:
+ - Pull and push blocks
+ - Use levers and buttons
+ - Jump
+ - Walljump once
+ - Grab onto cliffs

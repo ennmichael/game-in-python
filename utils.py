@@ -8,6 +8,12 @@ class BoundVector(NamedTuple):
     position: complex
     free_vector: complex
 
+    def real_distance(self, v: 'BoundVector') -> float:
+        pass
+
+    def imag_distance(self, v: 'BoundVector') -> float:
+        pass
+
 
 def cross(v1: complex, v2: complex) -> float:
     return v1.real * v2.imag - v1.imag * v2.real
