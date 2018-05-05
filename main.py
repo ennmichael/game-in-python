@@ -1,8 +1,7 @@
 import sdl
 import utils
 import game
-import collision
-from player import Igor
+from player import Wolfram
 
 
 # TODO Handle views by just passing offset parameters all over the place
@@ -14,16 +13,10 @@ TEXTURES_PATHS = [
 ]
 
 
-walls = [
-    collision.Wall(100 + 0j, 200 + 200j)
+solid_boxes = [
+    sdl.Rectangle(200 + 300j, sdl.Dimensions(1000, 10)),
+    sdl.Rectangle(500 + 100j, sdl.Dimensions(10, 1000)),
 ]
-
-
-def draw_walls(renderer: sdl.Renderer) -> None:
-    for wall in walls:
-        renderer.draw_color = sdl.Color.black()
-        renderer.draw_line(wall.position, wall.position + wall.free_vector)
-        renderer.draw_color = sdl.Color.white()
 
 
 if __name__ == '__main__':
@@ -33,19 +26,23 @@ if __name__ == '__main__':
 
         keyboard = sdl.Keyboard()
 
-        igor = Igor(position=0 + 0j,
-                    textures=textures)
+        wolfram = Wolfram(position=300 + 0j,
+                          textures=textures)
 
         def main_callback(delta: utils.Seconds) -> None:
+            print(wolfram.position)
+
             renderer.render_clear()
 
-            if collision.will_collide(igor, walls[0], delta):
-                print('Will collide')
+            for box in solid_boxes:
+                renderer.draw_color = sdl.Color.black()
+                renderer.fill_rectangle(wolfram.checkbox)
+                renderer.fill_rectangle(box)
+                renderer.draw_color = sdl.Color.white()
 
-            draw_walls(renderer)
-            igor.handle_keyboard(keyboard)
-            game.update_physics(igor, walls, delta)
-            igor.render(renderer)
+            wolfram.handle_keyboard(keyboard)
+            wolfram.update_physics(solid_boxes, delta)
+            wolfram.render(renderer)
             renderer.render_present()
 
         game.main_loop(main_callback, fps=60)

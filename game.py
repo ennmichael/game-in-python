@@ -1,15 +1,17 @@
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Iterable
 import enum
 import abc
 
 import sdl
 import utils
-import collision
 
 
-GRAVITY = 0.001
+GRAVITY = 1000
 
 
+# Redundant type aliases?
+Checkbox = sdl.Rectangle
+Checkboxes = Iterable[Checkbox]
 MainLoopCallback = Callable[[utils.Seconds], None]
 
 
@@ -37,9 +39,9 @@ class Sprite(abc.ABC):
                flip: Optional[sdl.Flip]=None) -> None:
         pass
 
-    @abc.abstractmethod
     @property
-    def checkbox(self) -> collision.Box:
+    @abc.abstractmethod
+    def dimensions(self) -> sdl.Dimensions:
         pass
 
     def update(self) -> None:
@@ -74,8 +76,8 @@ class Animation(Sprite):
         return self.frames[self.current_frame_num]
 
     @property
-    def checkbox(self) -> collision.Box:
-        return self.current_frame
+    def dimensions(self) -> sdl.Dimensions:
+        return self.current_frame.dimensions
 
     def update(self) -> None:
         self.update_current_frame_num()
@@ -109,6 +111,10 @@ class Image(Sprite):
                                                   self.frame.dimensions),
                                 flip=flip)
 
+    @property
+    def dimensions(self) -> sdl.Dimensions:
+        return self.frame.dimensions
+
 
 # TODO We shouldn't need this in the future
 def even_frames(first_frame: sdl.Rectangle,
@@ -137,9 +143,9 @@ class Entity:
         self.sprite = sprite
 
     @property
-    def checkbox(self) -> collision.Box:
-        return self.sprite.checkbox
-    
+    def checkbox(self) -> Checkbox:
+        return sdl.Rectangle(self.position, self.sprite.dimensions)
+
     def update_sprite(self) -> None:
         self.sprite.update()
 
@@ -147,33 +153,45 @@ class Entity:
 class MovingEntity(Entity):
     def __init__(self,
                  position: complex,
-                 sprite: Sprite,
                  direction: Direction,
-                 velocity: complex=0+0j) -> None:
+                 velocity: complex,
+                 sprite: Sprite) -> None:
         super().__init__(position, sprite)
         self.direction = direction
         self.velocity = velocity
 
     def update_physics(self,
-                       walls: collision.Walls,
+                       solid_boxes: Checkboxes,
                        delta: utils.Seconds) -> None:
         self.apply_gravity(delta)
-        self.update_velocity(walls, delta)
-        self.update_position(delta)
+
+        displacement = self.velocity * delta
+        imag_position_delta = displacement.imag
+        real_position_delta = displacement.real
+
+        # Smarter way to do this without the slight glitching
+
+        for box in solid_boxes:
+            if self.checkbox.vertically_overlaps(box):
+                if self.checkbox.is_above(box):
+                    d = box.upper_left.imag - self.checkbox.lower_left.imag
+                    if d < displacement.imag:
+                        imag_position_delta = d
+                else:
+                    d = self.checkbox.upper_left.imag - box.lower_left.imag
+                    if d < -displacement.imag:
+                        imag_position_delta = -d
+            elif self.checkbox.horizontally_overlaps(box):
+                if self.checkbox.is_left_from(box):
+                    d = box.upper_right.real - self.checkbox.upper_left.real
+                    if d < displacement.real:
+                        real_position_delta = d
+                else:
+                    d = self.checkbox.upper_left.real - box.upper_right.real
+                    if d < -displacement.real:
+                        real_position_delta = -d
+
+        self.position += real_position_delta + imag_position_delta * 1j
 
     def apply_gravity(self, delta: utils.Seconds) -> None:
         self.velocity += GRAVITY * delta * delta * 1j
-
-    def update_velocity(self,
-                        walls: collision.Walls,
-                        delta: utils.Seconds) -> None:
-        col = collision.detect(self.checkbox,
-                               self.velocity,
-                               walls,
-                               delta)
-
-        if col:
-            pass
-
-    def update_position(self, delta: utils.Seconds) -> None:
-        self.position += self.velocity * delta

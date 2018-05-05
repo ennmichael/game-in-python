@@ -105,17 +105,31 @@ class Rectangle(NamedTuple):
     upper_left: complex
     dimensions: Dimensions
 
+    def horizontally_overlaps(self, r: 'Rectangle') -> bool:
+        return not (r.upper_right.real < self.upper_left.real
+                    or r.upper_left.real > self.upper_right.real)
+
+    def vertically_overlaps(self, r: 'Rectangle') -> bool:
+        return not (r.lower_right.imag < self.upper_right.imag # False
+                    or r.upper_right.imag > self.lower_right.imag) # False
+
+    def is_above(self, r: 'Rectangle') -> bool:
+        return self.lower_right.imag <= r.upper_right.imag
+
+    def is_left_from(self, r: 'Rectangle') -> bool:
+        return self.lower_right.real <= r.lower_left.real
+
     @property
     def upper_right(self) -> complex:
         return self.upper_left + self.width
 
     @property
     def lower_right(self) -> complex:
-        return self.upper_right + self.height
+        return self.upper_right + self.height * 1j
 
     @property
     def lower_left(self) -> complex:
-        return self.upper_left + self.height
+        return self.upper_left + self.height * 1j
 
     @property
     def width(self) -> int:
@@ -126,7 +140,7 @@ class Rectangle(NamedTuple):
         return self.dimensions.height
 
     @property
-    def _as_parameter_(self) -> Any:
+    def as_sdl_parameter(self) -> Any:
         class SdlRect(ctypes.Structure):
 
             _fields_ = [('x', ctypes.c_int),
@@ -198,7 +212,7 @@ class Renderer:
 
     def fill_rectangle(self, r: Rectangle) -> None:
         if libsdl2.SDL_RenderFillRect(self.sdl_renderer,
-                                      ctypes.byref(r._as_parameter_)) < 0:
+                                      ctypes.byref(r.as_sdl_parameter)) < 0:
             raise Error
 
     def draw_line(self, start: complex, end: complex) -> None:
@@ -241,8 +255,8 @@ class Renderer:
                        flip: Optional[Flip]=None) -> None:
         if libsdl2.SDL_RenderCopyEx(self.sdl_renderer,
                                     texture.sdl_texture,
-                                    ctypes.byref(src._as_parameter_),
-                                    ctypes.byref(dst._as_parameter_),
+                                    ctypes.byref(src.as_sdl_parameter),
+                                    ctypes.byref(dst.as_sdl_parameter),
                                     ctypes.c_double(0),
                                     None,
                                     flip or Flip.NONE) < 0:

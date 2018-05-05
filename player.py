@@ -4,10 +4,9 @@ import functools
 import utils
 import game
 import sdl
-import collision
 
 
-class Wolfram:
+class Wolfram(game.MovingEntity):
 
     class Sprites:
 
@@ -38,16 +37,12 @@ class Wolfram:
     def __init__(self,
                  position: complex,
                  textures: sdl.LoadedTextures) -> None:
-        self.direction = game.Direction.RIGHT
         self.state = Wolfram.State.STILL
-        self.position = position
-        self.velocity = 0 + 0j
         self.sprites = Wolfram.Sprites(textures)
-        self.sprite: game.Sprite = self.sprites.still()
-
-    @property
-    def checkbox(self) -> collision.Box:
-        return self.sprite.checkbox
+        super().__init__(position=position,
+                         direction=game.Direction.RIGHT,
+                         velocity=0+0j,
+                         sprite=self.sprites.still())
 
     def render(self, renderer: sdl.Renderer) -> None:
         self.sprite.render(renderer,
